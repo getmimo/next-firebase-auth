@@ -99,6 +99,40 @@ describe('verifyIdToken', () => {
     expect(token).toEqual('a-new-token')
   })
 
+  it('returns an AuthUser with a new token when the token is refreshed -- error is auth/argument-error', async () => {
+    const { verifyIdToken } = require('src/firebaseAdmin')
+
+    // Mock the behavior of refreshing the token.
+    global.fetch.mockImplementation(async (endpoint) => {
+      if (endpoint.indexOf(googleRefreshTokenEndpoint) === 0) {
+        return {
+          ...createMockFetchResponse(),
+          json: () => Promise.resolve({ id_token: 'a-new-token' }),
+        }
+      }
+      // Incorrect endpoint. Return a 500.
+      return { ...createMockFetchResponse(), ok: false, status: 500 }
+    })
+
+    // Mock that the original token is expired but a new token works.
+    const expiredTokenErr = new Error(
+      'The provided Firebase ID token is expired.'
+    )
+    expiredTokenErr.code = 'auth/argument-error'
+    const mockFirebaseUser = createMockFirebaseUserAdminSDK()
+    const admin = getFirebaseAdminApp()
+    admin.auth().verifyIdToken.mockImplementation(async (token) => {
+      if (token === 'some-token') {
+        throw expiredTokenErr
+      } else {
+        return mockFirebaseUser
+      }
+    })
+    const AuthUser = await verifyIdToken('some-token', 'my-refresh-token')
+    const token = await AuthUser.getIdToken()
+    expect(token).toEqual('a-new-token')
+  })
+
   it('calls the Google token refresh endpoint with the public Firebase API key as a query parameter value', async () => {
     const { verifyIdToken } = require('src/firebaseAdmin')
 
