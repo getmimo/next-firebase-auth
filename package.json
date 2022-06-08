@@ -83,8 +83,8 @@
     "firebase": ">=7.0.0 <9",
     "firebase-admin": "^9.0.0 <11",
     "next": ">=9.5.0 <13",
-    "react": ">=16.8.0 <18",
-    "react-dom": ">=16.8.0 <18"
+    "react": ">=16.8.0 <19",
+    "react-dom": ">=16.8.0 <19"
   },
   "dependencies": {
     "cookies": "^0.8.0",
